@@ -1,6 +1,19 @@
 database:
-  host: localhost
-  user: username
-  password: password
-  dbname: dbname
-  port: 5432
+  host: 127.0.0.1
+  name: customer_db
+  writer:
+    user: writer
+    password: writer_password
+    port: 3306
+    conn_time: 8000
+    max_idle_conns: 10
+    max_open_conns: 100
+  reader:
+    user: reader
+    password: reader_password
+    port: 3309
+    conn_time: 8000
+    max_idle_conns: 10
+    max_open_conns: 100
+app:
+  port: 8080

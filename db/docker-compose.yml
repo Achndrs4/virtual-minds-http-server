@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  customer_db-master:
+    image: mysql:latest
+    container_name:  customer_db-master
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_USER: writer
+      MYSQL_PASSWORD: writer_password
+      MYSQL_DATABASE: customer_db
+      MYSQL_ROOT_PASSWORD: CHANGEME
+    volumes:
+      - customer_db-master-data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+
+  customer_db-replica1:
+    image: mysql:latest
+    container_name: customer_db-replica1
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_USER: reader
+      MYSQL_PASSWORD: reader_password
+      MYSQL_MASTER_HOST: customer_db-master
+      MYSQL_MASTER_PORT: 3306
+      MYSQL_ROOT_PASSWORD: CHANGEME
+      MYSQL_DATABASE: customer_db
+    volumes:
+      - customer_db-replica1-data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+
+  customer_db-replica2:
+    image: mysql:latest
+    container_name: customer_db-replica2
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_USER: reader
+      MYSQL_PASSWORD: reader_password
+      MYSQL_MASTER_HOST: customer_db-master
+      MYSQL_MASTER_PORT: 3306
+      MYSQL_ROOT_PASSWORD: CHANGEME
+      MYSQL_DATABASE: customer_db
+    volumes:
+      - customer_db-replica2-data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+
+  haproxy:
+      image: haproxy:latest
+      container_name: haproxy
+      ports:
+          - "3309:3309" 
+      volumes:
+          - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      depends_on:
+          - customer_db-master
+          - customer_db-replica1
+          - customer_db-replica2
+
+volumes:
+  customer_db-master-data:
+  customer_db-replica1-data:
+  customer_db-replica2-data:
