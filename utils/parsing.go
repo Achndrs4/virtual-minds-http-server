@@ -2,17 +2,14 @@ package utils
 
 import (
 	"encoding/json"
-	"strconv"
-	"strings"
+	"net"
 	"virtualminds/http-server/models"
 )
 
-func GetValidIP(ip string) (int, error) {
-	ip_int, err := strconv.Atoi(strings.ReplaceAll(ip, ".", ""))
-	if err != nil {
-		return -1, err
-	}
-	return ip_int, nil
+func IsValidIP(ip string) bool {
+	// check if the IP is valid. Accepts IPv4 dotted decimal ("192.0.2.1"), IPv6 ("2001:db8::68"), or IPv4-mapped IPv6
+	parsedIP := net.ParseIP(ip)
+	return parsedIP != nil
 }
 
 func GetRequestBody(body []byte) (*models.CustomerRequest, error) {

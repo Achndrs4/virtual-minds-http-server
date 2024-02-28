@@ -8,24 +8,26 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 
-	"virtualminds/http-server/database"
+	"virtualminds/http-server/mocks"
 	"virtualminds/http-server/services"
 )
 
+func setupStatsTestRouter() (*services.StatsService, *gin.Engine) {
+	mockCustomerService := &services.StatsService{DB: &mocks.MockDatabase{}}
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	return mockCustomerService, router
+}
+
 func TestGetDailyStats(t *testing.T) {
-	// Create a new gin engine
-	router := gin.Default()
-
-	// Create a mock stats service
-	mockStatsService := &services.StatsService{DB: &database.MockDatabase{}}
-
+	mockStatsService, router := setupStatsTestRouter()
 	// Register the GetDailyStats handler with the router
 	router.GET("/statistics", func(c *gin.Context) {
-		GetDailyStats(c, mockStatsService)
+		DailyStats(c, mockStatsService)
 	})
 
 	// Create a test request
-	req, err := http.NewRequest("GET", "/statistics?customer=1&day=20240228", nil)
+	req, err := http.NewRequest("GET", "/statistics?customer=1&date=20240228", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,19 +47,14 @@ func TestGetDailyStats(t *testing.T) {
 }
 
 func TestGetDailyStatsError(t *testing.T) {
-	// Create a new gin engine
-	router := gin.Default()
+	mockStatsService, router := setupStatsTestRouter()
 
-	// Create a mock stats service
-	mockStatsService := &services.StatsService{DB: &database.MockDatabase{}}
-
-	// Register the GetDailyStats handler with the router
 	router.GET("/statistics", func(c *gin.Context) {
-		GetDailyStats(c, mockStatsService)
+		DailyStats(c, mockStatsService)
 	})
 
-	// Create a test request with a bad request that the database will return an error tox``
-	req, err := http.NewRequest("GET", "/statistics?customer=2&day=20240228", nil)
+	// Create a test request with a bad request that the database will return an error (userNotFound)``
+	req, err := http.NewRequest("GET", "/statistics?customer=2&date=20240228", nil)
 	if err != nil {
 		t.Fatal(err)
 	}

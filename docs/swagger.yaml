@@ -1,0 +1,80 @@
+basePath: /api/v1
+definitions:
+  models.CustomerRequest:
+    properties:
+      customerID:
+        type: integer
+      remoteIP:
+        type: string
+      timestamp:
+        type: integer
+    required:
+    - customerID
+    - remoteIP
+    - timestamp
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: ani.chandrashekhar@gmail.com
+    name: Ani Chandrashekhar
+  description: A small API written in Go using Gin for routing and GORM as an ORM
+    to a database
+  title: Virtual Minds HTTP-Server
+  version: "1.0"
+paths:
+  /customer:
+    post:
+      consumes:
+      - application/json
+      description: A POST endpoint that takes in a JSON and produces a record in a
+        statistics table if successful
+      parameters:
+      - description: User-Agent header for user identification
+        in: header
+        name: user-agent
+        type: string
+      - description: Customer Request body
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/models.CustomerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Ingests and persists a customer record
+  /statistics:
+    get:
+      description: An endpoint that takes in a customerID and a date in YYYYMMDD format
+        as query parameters and produces aggregations over the day in the table
+      parameters:
+      - description: string customer
+        in: query
+        name: customer
+        type: string
+      - description: string date
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal Server Error
+      summary: Serves statistics about a certain endpoint
+swagger: "2.0"

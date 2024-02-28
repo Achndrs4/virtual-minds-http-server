@@ -3,14 +3,13 @@ package config
 import (
 	"fmt"
 	"log"
-	"strings"
+	"os"
 
 	"github.com/spf13/viper"
 )
 
-func LoadConfig(logger *log.Logger) {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
+func LoadConfig(logger *log.Logger, configFile string) {
+	viper.SetConfigFile(configFile)
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
@@ -19,15 +18,8 @@ func LoadConfig(logger *log.Logger) {
 	}
 }
 
-func PrintConfig() {
-	allSettings := viper.AllSettings()
-	for key, value := range allSettings {
-		if strings.Contains(key, "password") {
-			fmt.Printf("%s: %v\n", key, "****")
-		} else {
-			fmt.Printf("%s: %v\n", key, value)
-		}
-	}
+func GetStandardLogger() *log.Logger {
+	return log.New(os.Stdout, "SRVR-LOG:\t", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func CreateDSN() string {

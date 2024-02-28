@@ -1,4 +1,4 @@
-CREATE USER 'local'@'localhost' IDENTIFIED BY 'local_password';
-GRANT ALL PRIVILEGES ON customer_db.* TO 'local'@'localhost';
+CREATE USER '${MYSQL_USER}'@'${HOST}' IDENTIFIED BY '${MYSQL_PASSWORD}';
+GRANT ALL PRIVILEGES ON '${MYSQL_DATABASE}'.* TO '${MYSQL_USER}'@'${HOST}';
 FLUSH PRIVILEGES;
-USE customer_db
+USE '${MYSQL_DATABASE}'

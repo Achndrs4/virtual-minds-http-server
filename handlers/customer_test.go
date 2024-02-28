@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"virtualminds/http-server/database"
+	"virtualminds/http-server/mocks"
 	"virtualminds/http-server/models"
 	"virtualminds/http-server/services"
 
@@ -15,17 +15,21 @@ import (
 	"github.com/go-playground/assert/v2"
 )
 
-func TestPersistCustomerEntryGoodData(t *testing.T) {
-	// Create a new gin engine
-	router := gin.Default()
+func setupCustomerTestRouter() (*services.CustomerService, *gin.Engine) {
+	// set up a router and a mock service
+	mockCustomerService := &services.CustomerService{DB: &mocks.MockDatabase{}}
+	gin.SetMode(gin.TestMode)
+	router := gin.New()
+	return mockCustomerService, router
+}
 
-	// Create a mock stats service
-	mockCustomerService := &services.CustomerService{DB: &database.MockDatabase{}}
+func TestPersistCustomerEntryGoodData(t *testing.T) {
+	mockCustomerService, router := setupCustomerTestRouter()
 
 	good_data := &models.CustomerRequest{
-		CustomerID: 1,
-		RemoteIP:   "99",
-		Timestamp:  100,
+		CustomerID: mocks.GOOD_CUSTOMER_ID,
+		RemoteIP:   mocks.GOOD_IP,
+		Timestamp:  0,
 	}
 	jsonData, _ := json.Marshal(good_data)
 
@@ -52,15 +56,11 @@ func TestPersistCustomerEntryGoodData(t *testing.T) {
 }
 
 func TestPersistCustomerIDNotFound(t *testing.T) {
-	// Create a new gin engine
-	router := gin.Default()
-
-	// Create a mock stats service
-	mockCustomerService := &services.CustomerService{DB: &database.MockDatabase{}}
+	mockCustomerService, router := setupCustomerTestRouter()
 
 	good_data := &models.CustomerRequest{
 		CustomerID: 2,
-		RemoteIP:   "100",
+		RemoteIP:   "53.135.119.210",
 		Timestamp:  100,
 	}
 	jsonData, _ := json.Marshal(good_data)
@@ -88,15 +88,10 @@ func TestPersistCustomerIDNotFound(t *testing.T) {
 }
 
 func TestPersistCustomerInactive(t *testing.T) {
-	// Create a new gin engine
-	router := gin.Default()
-
-	// Create a mock stats service
-	mockCustomerService := &services.CustomerService{DB: &database.MockDatabase{}}
-
+	mockCustomerService, router := setupCustomerTestRouter()
 	good_data := &models.CustomerRequest{
 		CustomerID: 3,
-		RemoteIP:   "100",
+		RemoteIP:   "53.135.119.210",
 		Timestamp:  100,
 	}
 	jsonData, _ := json.Marshal(good_data)
@@ -124,16 +119,12 @@ func TestPersistCustomerInactive(t *testing.T) {
 }
 
 func TestPersistCustomerEntryBlockedIP(t *testing.T) {
-	// Create a new gin engine
-	router := gin.Default()
-
-	// Create a mock stats service
-	mockCustomerService := &services.CustomerService{DB: &database.MockDatabase{}}
+	mockCustomerService, router := setupCustomerTestRouter()
 
 	good_data := &models.CustomerRequest{
-		CustomerID: 1,
-		RemoteIP:   "100",
-		Timestamp:  100,
+		CustomerID: mocks.GOOD_CUSTOMER_ID,
+		RemoteIP:   mocks.BLOCKED_IP,
+		Timestamp:  0,
 	}
 	jsonData, _ := json.Marshal(good_data)
 
@@ -160,23 +151,19 @@ func TestPersistCustomerEntryBlockedIP(t *testing.T) {
 }
 
 func TestPersistCustomerEntryBlockedAgent(t *testing.T) {
-	// Create a new gin engine
-	router := gin.Default()
-
-	// Create a mock stats service
-	mockCustomerService := &services.CustomerService{DB: &database.MockDatabase{}}
+	mockCustomerService, router := setupCustomerTestRouter()
 
 	good_data := &models.CustomerRequest{
-		CustomerID: 1,
-		RemoteIP:   "99",
-		Timestamp:  100,
+		CustomerID: mocks.GOOD_CUSTOMER_ID,
+		RemoteIP:   mocks.GOOD_IP,
+		Timestamp:  0,
 	}
 	jsonData, _ := json.Marshal(good_data)
 
 	// Register the GetDailyStats handler with the router
 	router.POST("/customer", func(c *gin.Context) {
 		c.Request.Body = io.NopCloser(bytes.NewReader(jsonData))
-		c.Request.Header.Set("User-Agent", "google")
+		c.Request.Header.Set("User-Agent", mocks.BAD_USER_AGENT)
 		PersistCustomerEntry(c, mockCustomerService)
 	})
 

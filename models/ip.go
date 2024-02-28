@@ -1,5 +1,5 @@
 package models
 
 type IPBlacklist struct {
-	IP int `gorm:"primaryKey"`
+	IP string `gorm:"primaryKey;varchar(255);NOT NULL"`
 }

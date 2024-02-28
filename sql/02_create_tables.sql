@@ -6,7 +6,7 @@ CREATE TABLE `customers` (
 );
 
 CREATE TABLE `ip_blacklists` (
-  `ip` int(11) unsigned NOT NULL,
+  `ip` varchar(255) NOT NULL,
   PRIMARY KEY (`ip`)
 );
 

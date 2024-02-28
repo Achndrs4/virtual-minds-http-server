@@ -10,11 +10,11 @@ func RoundDownToHour(t int64) time.Time {
 	return time.Date(unix_time.Year(), unix_time.Month(), unix_time.Day(), unix_time.Hour(), 0, 0, 0, unix_time.Location())
 }
 
-func ParseDateString(dateString string) (time.Time, error) {
+func ParseDateString(dateString string) (*time.Time, error) {
 	layout := "20060102"
 	parsedTime, err := time.Parse(layout, dateString)
 	if err != nil {
-		return time.Time{}, err
+		return nil, err
 	}
-	return parsedTime, nil
+	return &parsedTime, nil
 }

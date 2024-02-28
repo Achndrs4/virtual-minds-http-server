@@ -1,0 +1,117 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "A small API written in Go using Gin for routing and GORM as an ORM to a database",
+        "title": "Virtual Minds HTTP-Server",
+        "contact": {
+            "name": "Ani Chandrashekhar",
+            "email": "ani.chandrashekhar@gmail.com"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/customer": {
+            "post": {
+                "description": "A POST endpoint that takes in a JSON and produces a record in a statistics table if successful",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Ingests and persists a customer record",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User-Agent header for user identification",
+                        "name": "user-agent",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Customer Request body",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CustomerRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/statistics": {
+            "get": {
+                "description": "An endpoint that takes in a customerID and a date in YYYYMMDD format as query parameters and produces aggregations over the day in the table",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Serves statistics about a certain endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "string customer",
+                        "name": "customer",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "string date",
+                        "name": "date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.CustomerRequest": {
+            "type": "object",
+            "required": [
+                "customerID",
+                "remoteIP",
+                "timestamp"
+            ],
+            "properties": {
+                "customerID": {
+                    "type": "integer"
+                },
+                "remoteIP": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

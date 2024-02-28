@@ -19,8 +19,8 @@ type DatabaseInterface interface {
 	GetCustomer(customerID uint) (*models.Customer, error)
 	GetCustomerTotal(datetime time.Time, customer int) (*models.CustomerStats, error)
 	GetDailyTotal(datetime time.Time) (int64, error)
-	IsIPValid(ip int) (bool, error)
-	IsUserAgentValid(userAgent string) (bool, error)
+	IsUserAgentBanned(userAgent string) (bool, error)
+	IsIPBanned(ip string) (bool, error)
 	CloseAll() error
 }
 
@@ -120,33 +120,34 @@ func (r *DatabaseRepository) GetCustomer(customerID uint) (*models.Customer, err
 }
 
 // IsIPBanned checks if an IP is banned
-func (r *DatabaseRepository) IsIPValid(ip int) (bool, error) {
+func (r *DatabaseRepository) IsIPBanned(ip string) (bool, error) {
 	database := r.DB
 	var ipBlacklist models.IPBlacklist
-	result := database.First(&ipBlacklist, ip)
+	result := database.First(&ipBlacklist, "ip = ?", ip)
 	if result.Error == nil {
-		return false, result.Error
+		return true, result.Error
 	} else if result.Error == gorm.ErrRecordNotFound {
-		return true, nil
+		return false, nil
 	}
-	return false, nil
+	print(result.Error.Error())
+	return true, result.Error
 }
 
 // IsUserAgentBanned checks if a user agent is banned
-func (r *DatabaseRepository) IsUserAgentValid(userAgent string) (bool, error) {
+func (r *DatabaseRepository) IsUserAgentBanned(userAgent string) (bool, error) {
 	if userAgent == "" {
-		return true, nil
+		return false, nil
 	}
 	database := r.DB
 	var uaBlacklist models.UABlacklist
-	result := database.Where("ua = ?", userAgent).First(&uaBlacklist)
+	result := database.First(&uaBlacklist, "ua = ?", userAgent)
 	if result.Error == nil {
-		return false, nil
-	} else if result.Error == gorm.ErrRecordNotFound {
 		return true, nil
+	} else if result.Error == gorm.ErrRecordNotFound {
+		return false, nil
 	}
 
-	return false, result.Error
+	return true, result.Error
 }
 
 // GetDailyTotal retrieves the total requests count for a specific day
