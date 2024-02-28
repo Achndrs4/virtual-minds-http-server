@@ -19,8 +19,8 @@ type DatabaseInterface interface {
 	GetCustomer(customerID uint) (*models.Customer, error)
 	GetCustomerTotal(datetime time.Time, customer int) (*models.CustomerStats, error)
 	GetDailyTotal(datetime time.Time) (int64, error)
-	IsIPBanned(ip int) (bool, error)
-	IsUserAgentBanned(userAgent string) (bool, error)
+	IsIPValid(ip int) (bool, error)
+	IsUserAgentValid(userAgent string) (bool, error)
 	CloseAll() error
 }
 
@@ -62,7 +62,7 @@ func (r *DatabaseRepository) configureGormLogger(std_logger *log.Logger) {
 			// seconds for an SQL query to be considered "slow" - change as queries get more heavy
 			SlowThreshold: time.Duration(config.GetGormSlowSQLSPeed()) * time.Second,
 			// we don't want to flood the logs, and anyways we store good and bad requests
-			LogLevel:                  logger.Info,
+			LogLevel:                  logger.Silent,
 			IgnoreRecordNotFoundError: true,
 			Colorful:                  true,
 		},
@@ -120,7 +120,7 @@ func (r *DatabaseRepository) GetCustomer(customerID uint) (*models.Customer, err
 }
 
 // IsIPBanned checks if an IP is banned
-func (r *DatabaseRepository) IsIPBanned(ip int) (bool, error) {
+func (r *DatabaseRepository) IsIPValid(ip int) (bool, error) {
 	database := r.DB
 	var ipBlacklist models.IPBlacklist
 	result := database.First(&ipBlacklist, ip)
@@ -129,24 +129,24 @@ func (r *DatabaseRepository) IsIPBanned(ip int) (bool, error) {
 	} else if result.Error == gorm.ErrRecordNotFound {
 		return true, nil
 	}
-	return true, nil
+	return false, nil
 }
 
 // IsUserAgentBanned checks if a user agent is banned
-func (r *DatabaseRepository) IsUserAgentBanned(userAgent string) (bool, error) {
+func (r *DatabaseRepository) IsUserAgentValid(userAgent string) (bool, error) {
 	if userAgent == "" {
-		return false, nil
+		return true, nil
 	}
 	database := r.DB
 	var uaBlacklist models.UABlacklist
 	result := database.Where("ua = ?", userAgent).First(&uaBlacklist)
 	if result.Error == nil {
-		return true, nil
-	} else if result.Error == gorm.ErrRecordNotFound {
 		return false, nil
+	} else if result.Error == gorm.ErrRecordNotFound {
+		return true, nil
 	}
 
-	return true, result.Error
+	return false, result.Error
 }
 
 // GetDailyTotal retrieves the total requests count for a specific day

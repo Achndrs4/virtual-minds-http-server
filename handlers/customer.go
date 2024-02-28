@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"virtualminds/http-server/services"
+	"virtualminds/http-server/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +18,7 @@ func PersistCustomerEntry(context *gin.Context, service *services.CustomerServic
 	}
 
 	// validate if the fields are valid. If we cannot get a valid customer, we exit early because the stats record relies on a foreign key customer to exist
-	request, err := service.GetRequestBody(body)
+	request, err := utils.GetRequestBody(body)
 	if err != nil {
 		handleError(context, http.StatusBadRequest)
 		return
@@ -27,7 +28,7 @@ func PersistCustomerEntry(context *gin.Context, service *services.CustomerServic
 	isCustomerValid, err := service.IsCustomerValid(request.CustomerID)
 	if err != nil || !isCustomerValid {
 		service.WriteCustomerStatistic(request, false)
-		handleError(context, http.StatusForbidden)
+		handleError(context, http.StatusNotFound)
 	}
 
 	// check if the IP is valid
@@ -38,8 +39,8 @@ func PersistCustomerEntry(context *gin.Context, service *services.CustomerServic
 	}
 
 	// check if the User-Agent is valid
-	isUserAgentBanned, err := service.IsUserAgentBanned(context.Request.UserAgent())
-	if err != nil || isUserAgentBanned {
+	isUserAgentValid, err := service.IsUserAgentValid(context.Request.UserAgent())
+	if err != nil || !isUserAgentValid {
 		service.WriteCustomerStatistic(request, false)
 		handleError(context, http.StatusForbidden)
 	}

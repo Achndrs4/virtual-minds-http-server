@@ -1,19 +1,15 @@
 package services
 
 import (
-	"encoding/json"
 	"virtualminds/http-server/database"
 	"virtualminds/http-server/models"
 	"virtualminds/http-server/utils"
-
-	"gorm.io/gorm"
 )
 
 type CustomerServiceInterface interface {
 	IsCustomerValid(customerID uint) (bool, error)
 	IsIPValid(ip_str string) (bool, error)
-	IsUserAgentBanned(userAgent string) (bool, error)
-	GetRequestBody(body []byte) (*models.CustomerRequest, error)
+	IsUserAgentValid(userAgent string) (bool, error)
 }
 
 type CustomerService struct {
@@ -23,7 +19,9 @@ type CustomerService struct {
 func (s *CustomerService) IsCustomerValid(customerID uint) (bool, error) {
 	// Check if the Customer is valid/exists
 	customer, err := s.DB.GetCustomer(customerID)
-	if err == gorm.ErrRecordNotFound || !customer.Active {
+	if err != nil {
+		return false, err
+	} else if !customer.Active {
 		return false, nil
 	}
 	return true, nil
@@ -44,17 +42,10 @@ func (s *CustomerService) IsIPValid(ip_str string) (bool, error) {
 		return false, err
 	}
 
-	return s.DB.IsIPBanned(ip_integer)
+	return s.DB.IsIPValid(ip_integer)
 }
 
-func (s *CustomerService) IsUserAgentBanned(userAgent string) (bool, error) {
-	return s.DB.IsUserAgentBanned(userAgent)
-}
-func (s *CustomerService) GetRequestBody(body []byte) (*models.CustomerRequest, error) {
-	// check if the json can be parsed, and if it has the required fields
-	var request models.CustomerRequest
-	if err := json.Unmarshal(body, &request); err != nil {
-		return nil, err
-	}
-	return &request, nil
+func (s *CustomerService) IsUserAgentValid(userAgent string) (bool, error) {
+	// check if the user agent is banned
+	return s.DB.IsUserAgentValid(userAgent)
 }
